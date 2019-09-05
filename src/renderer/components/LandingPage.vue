@@ -4,6 +4,8 @@
     <main>
       <div class="left-side">
         <span class="title">Welcome to kwafoo</span>
+        <input type="button" value="test" @click="test">
+        {{info}}
         <!-- <system-information></system-information> -->
       </div>
 
@@ -33,9 +35,24 @@ import SystemInformation from './LandingPage/SystemInformation'
 export default {
   name: 'landing-page',
   components: { SystemInformation },
+  data () {
+    return {
+      info: ''
+    }
+  },
   methods: {
     open (link) {
       this.$electron.shell.openExternal(link)
+    },
+    test () {
+      const request = require('request')
+      request.get({url: 'https://www.baidu.com'},
+        (error, response, body) => {
+          if (!error && response.statusCode === 200) {
+            this.info = response.body
+          }
+        }
+      )
     }
   }
 }
