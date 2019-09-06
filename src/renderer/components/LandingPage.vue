@@ -1,20 +1,50 @@
 <template>
-  <div id="wrapper">
-    <!-- <img id="logo" src="~@/assets/logo.png" alt="electron-vue"> -->
-    <main>
-      <div class="left-side">
-        <span class="title">Welcome to kwafoo</span>
-        <el-row>
-          <el-button type="primary" @click="test">test</el-button>
-        </el-row>
-        <system-information></system-information>
-      </div>
-
-      <div class="right-side">
-        <p>{{info}}</p>
-      </div>
-    </main>
-  </div>
+  <el-container>
+    <el-main style="padding:0px 10px 10px 10px">
+      <el-tabs v-model="activeName" @tab-click="handleClick">
+        <el-tab-pane label="页面扫描" name="scanner">
+          <el-row>
+            <el-col :span="12">
+              <el-input placeholder="请输入地址" v-model="url" class="input-with-select" size="mini">
+                <el-button slot="append" icon="el-icon-search" @click="test">获取资源列表</el-button>
+              </el-input>
+            </el-col>
+            <el-col :span="12"></el-col>
+          </el-row>
+          <br />
+          <el-row>
+            <el-col :span="24">
+              <el-input placeholder="url匹配" v-model="regex_url" size="mini" clearable></el-input>
+            </el-col>
+          </el-row>
+          <br />
+          <el-row>
+            <el-col :span="24">
+              <el-input placeholder="链接正则" v-model="regex_link" size="mini" clearable></el-input>
+            </el-col>
+          </el-row>
+          <br />
+          <el-row>
+            <el-col :span="24">
+              <div v-for="(item, index) in list" :key="index">
+                <el-checkbox
+                  v-model="checked"
+                  ref="link"
+                  style="overflow: hidden; text-overflow:ellipsis; white-space: nowrap;"
+                >{{item}}</el-checkbox>
+              </div>
+            </el-col>
+          </el-row>
+        </el-tab-pane>
+        <el-tab-pane label="配置管理" name="second">配置管理</el-tab-pane>
+        <el-tab-pane label="文件管理" name="third">文件管理</el-tab-pane>
+        <el-tab-pane label="关于系统" name="fourth">
+          <system-information></system-information>
+        </el-tab-pane>
+      </el-tabs>
+    </el-main>
+    <el-footer></el-footer>
+  </el-container>
 </template>
 
 <script>
@@ -25,18 +55,32 @@ export default {
   components: { SystemInformation },
   data() {
     return {
-      info: ""
+      list: [],
+      url: "",
+      activeName: "scanner",
+      regex_url: "",
+      regex_link: ""
     };
   },
   methods: {
     open(link) {
       this.$electron.shell.openExternal(link);
     },
+    handleClick(tab, event) {
+      console.log(tab, event);
+    },
     test() {
       const request = require("request");
-      request.get({ url: "https://www.baidu.com" }, (error, response, body) => {
+      request.get({ url: this.url }, (error, response, body) => {
         if (!error && response.statusCode === 200) {
-          this.info = response.body;
+          this.list = [];
+          console.log(response.body);
+
+          this.list.push(
+            ...response.body.match(
+              new RegExp(eval('/(src|href)="' + this.regex_link + '"/'), "g")
+            )
+          );
         }
       });
     }
@@ -47,6 +91,27 @@ export default {
 <style>
 @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro");
 
+.item {
+  margin-bottom: 18px;
+}
+
+.clearfix:before,
+.clearfix:after {
+  display: table;
+  content: "";
+}
+.clearfix:after {
+  clear: both;
+}
+
+.box-card {
+  width: 480px;
+}
+
+.input-with-select .el-input-group__prepend {
+  background-color: #fff;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -55,78 +120,5 @@ export default {
 
 body {
   font-family: "Source Sans Pro", sans-serif;
-}
-
-#wrapper {
-  background: radial-gradient(
-    ellipse at top left,
-    rgba(255, 255, 255, 1) 40%,
-    rgba(229, 229, 229, 0.9) 100%
-  );
-  height: 100vh;
-  padding: 60px 80px;
-  width: 100vw;
-}
-
-#logo {
-  height: auto;
-  margin-bottom: 20px;
-  width: 420px;
-}
-
-main {
-  display: flex;
-  justify-content: space-between;
-}
-
-main > div {
-  flex-basis: 50%;
-}
-
-.left-side {
-  display: flex;
-  flex-direction: column;
-}
-
-.welcome {
-  color: #555;
-  font-size: 23px;
-  margin-bottom: 10px;
-}
-
-.title {
-  color: #2c3e50;
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-
-.title.alt {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-.doc p {
-  color: black;
-  margin-bottom: 10px;
-}
-
-.doc button {
-  font-size: 0.8em;
-  cursor: pointer;
-  outline: none;
-  padding: 0.75em 2em;
-  border-radius: 2em;
-  display: inline-block;
-  color: #fff;
-  background-color: #4fc08d;
-  transition: all 0.15s ease;
-  box-sizing: border-box;
-  border: 1px solid #4fc08d;
-}
-
-.doc button.alt {
-  color: #42b983;
-  background-color: transparent;
 }
 </style>
