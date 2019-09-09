@@ -18,6 +18,10 @@
           <br />
           <el-row>
             <el-col :span="12">
+              <el-checkbox label="全选" v-model="select_all_status" @change="select_all"></el-checkbox>
+              <el-button size="mini">下载</el-button>
+            </el-col>
+            <el-col :span="12">
               <el-input placeholder="请输入链接正则" v-model="regex_link" size="mini" clearable></el-input>
             </el-col>
           </el-row>
@@ -61,10 +65,16 @@ export default {
       activeName: "single-page",
       regex_url: "",
       regex_link: "\\S+",
-      loading: false
+      loading: false,
+      select_all_status: false
     };
   },
   methods: {
+    select_all() {
+       console.log(this.checked)
+      this.checked = this.$ref.map(item => item = this.select_all_status);
+      console.log(this.checked)
+    },
     handleClick(tab, event) {
       console.log(tab, event);
     },
