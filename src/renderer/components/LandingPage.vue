@@ -96,14 +96,11 @@ export default {
       );
 
       this.list = [];
-      if (!this.request_info) {
-        this.list.push(
-          ...this.request_info.match(
-            new RegExp(eval('/(src|href)="' + this.regex_link + '"/'), "g")
-          )
-        );
-      }
-
+      this.list.push(
+        ...this.request_info.match(
+          new RegExp(eval('/(src|href)="' + this.regex_link + '"/'), "g")
+        )
+      );
       this.loading = false;
     }
   }
