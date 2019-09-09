@@ -2,25 +2,23 @@
   <el-container>
     <el-main style="padding:0px 10px 10px 10px">
       <el-tabs v-model="activeName" @tab-click="handleClick">
-        <el-tab-pane label="页面扫描" name="scanner">
+        <el-tab-pane label="单页下载" name="single-page">
           <el-row>
-            <el-col :span="12">
+            <el-col :span="24">
               <el-input placeholder="请输入地址" v-model="url" class="input-with-select" size="mini">
-                <el-button slot="append" icon="el-icon-search" @click="test">获取资源列表</el-button>
+                <el-button
+                  :loading="loading"
+                  slot="append"
+                  icon="el-icon-search"
+                  @click="test"
+                >获取资源列表</el-button>
               </el-input>
             </el-col>
-            <el-col :span="12"></el-col>
           </el-row>
           <br />
           <el-row>
-            <el-col :span="24">
-              <el-input placeholder="url匹配" v-model="regex_url" size="mini" clearable></el-input>
-            </el-col>
-          </el-row>
-          <br />
-          <el-row>
-            <el-col :span="24">
-              <el-input placeholder="链接正则" v-model="regex_link" size="mini" clearable></el-input>
+            <el-col :span="12">
+              <el-input placeholder="请输入链接正则" v-model="regex_link" size="mini" clearable></el-input>
             </el-col>
           </el-row>
           <br />
@@ -28,7 +26,7 @@
             <el-col :span="24">
               <div v-for="(item, index) in list" :key="index">
                 <el-checkbox
-                  v-model="checked"
+                  v-model="checked[index]"
                   ref="link"
                   style="overflow: hidden; text-overflow:ellipsis; white-space: nowrap;"
                 >{{item}}</el-checkbox>
@@ -36,9 +34,10 @@
             </el-col>
           </el-row>
         </el-tab-pane>
-        <el-tab-pane label="配置管理" name="second">配置管理</el-tab-pane>
-        <el-tab-pane label="文件管理" name="third">文件管理</el-tab-pane>
-        <el-tab-pane label="关于系统" name="fourth">
+        <el-tab-pane label="多页下载" name="muti-page">多页下载</el-tab-pane>
+        <el-tab-pane label="配置管理" name="config">配置管理</el-tab-pane>
+        <el-tab-pane label="文件管理" name="file-sys">文件管理</el-tab-pane>
+        <el-tab-pane label="关于系统" name="about">
           <system-information></system-information>
         </el-tab-pane>
       </el-tabs>
@@ -49,40 +48,63 @@
 
 <script>
 import SystemInformation from "./LandingPage/SystemInformation";
-
+import { scout } from "./../../core/scout";
 export default {
   name: "landing-page",
   components: { SystemInformation },
   data() {
     return {
+      request_info: "",
+      checked: [],
       list: [],
       url: "",
-      activeName: "scanner",
+      activeName: "single-page",
       regex_url: "",
-      regex_link: ""
+      regex_link: "\\S+",
+      loading: false
     };
   },
   methods: {
-    open(link) {
-      this.$electron.shell.openExternal(link);
-    },
     handleClick(tab, event) {
       console.log(tab, event);
     },
-    test() {
-      const request = require("request");
-      request.get({ url: this.url }, (error, response, body) => {
-        if (!error && response.statusCode === 200) {
-          this.list = [];
-          console.log(response.body);
+    open(link) {
+      this.$electron.shell.openExternal(link);
+    },
+    async test() {
+      if (!this.url) {
+        this.$message.error({
+          showClose: true,
+          type: "error",
+          message: "请输入url"
+        });
+        return;
+      }
 
-          this.list.push(
-            ...response.body.match(
-              new RegExp(eval('/(src|href)="' + this.regex_link + '"/'), "g")
-            )
-          );
+      this.loading = true;
+      await scout.get(this.url).then(
+        response => {
+          this.request_info = response.body;
+        },
+        error => {
+          this.$message.error({
+            showClose: true,
+            type: "error",
+            message: error
+          });
         }
-      });
+      );
+
+      this.list = [];
+      if (!this.request_info) {
+        this.list.push(
+          ...this.request_info.match(
+            new RegExp(eval('/(src|href)="' + this.regex_link + '"/'), "g")
+          )
+        );
+      }
+
+      this.loading = false;
     }
   }
 };
@@ -120,5 +142,6 @@ export default {
 
 body {
   font-family: "Source Sans Pro", sans-serif;
+  font-size: 12px;
 }
 </style>
