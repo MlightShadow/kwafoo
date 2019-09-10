@@ -19,7 +19,7 @@
           <el-row>
             <el-col :span="12">
               <el-checkbox label="全选" v-model="select_all_status" @change="select_all"></el-checkbox>
-              <el-button size="mini">下载</el-button>
+              <el-button size="mini" @click="download">下载</el-button>
             </el-col>
             <el-col :span="12">
               <el-input placeholder="请输入链接正则" v-model="regex_link" size="mini" clearable></el-input>
@@ -66,14 +66,22 @@ export default {
       regex_url: "",
       regex_link: "\\S+",
       loading: false,
-      select_all_status: false
+      select_all_status: false,
+      download_list: []
     };
   },
   methods: {
+    download() {
+      this.download_list = [];
+      this.checked.map((v, i) => {
+        if (v) {
+          this.download_list.push(this.list[i]);
+        }
+      });
+      console.log(this.download_list);
+    },
     select_all() {
-       console.log(this.checked)
-      this.checked = this.$ref.map(item => item = this.select_all_status);
-      console.log(this.checked)
+      this.checked = this.$refs.link.map(() => this.select_all_status);
     },
     handleClick(tab, event) {
       console.log(tab, event);
@@ -91,6 +99,8 @@ export default {
         return;
       }
 
+      this.list = [];
+      this.checked = [];
       this.loading = true;
       await scout.get(this.url).then(
         response => {
@@ -105,12 +115,21 @@ export default {
         }
       );
 
-      this.list = [];
-      this.list.push(
-        ...this.request_info.match(
+      if (this.request_info) {
+        let match_list = this.request_info.match(
           new RegExp(eval('/(src|href)="' + this.regex_link + '"/'), "g")
-        )
-      );
+        );
+
+        match_list = match_list.map(s =>
+          s
+            .replace(new RegExp(/(src|href)=/, "g"), "")
+            .replace(new RegExp(/\"/, "g"), "")
+        );
+        if (match_list) {
+          this.list.push(...match_list);
+        }
+      }
+
       this.loading = false;
     }
   }
