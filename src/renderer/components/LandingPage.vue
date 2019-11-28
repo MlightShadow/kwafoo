@@ -51,89 +51,89 @@
 </template>
 
 <script>
-import SystemInformation from "./LandingPage/SystemInformation";
-import { scout } from "./../../core/scout";
+import SystemInformation from './LandingPage/SystemInformation'
+import { scout } from './../../core/scout'
 export default {
-  name: "landing-page",
+  name: 'landing-page',
   components: { SystemInformation },
-  data() {
+  data () {
     return {
-      request_info: "",
+      request_info: '',
       checked: [],
       list: [],
-      url: "",
-      activeName: "single-page",
-      regex_url: "",
-      regex_link: "\\S+",
+      url: '',
+      activeName: 'single-page',
+      regex_url: '',
+      regex_link: '\\S+',
       loading: false,
       select_all_status: false,
       download_list: []
-    };
+    }
   },
   methods: {
-    download() {
-      this.download_list = [];
+    download () {
+      this.download_list = []
       this.checked.map((v, i) => {
         if (v) {
-          this.download_list.push(this.list[i]);
+          this.download_list.push(this.list[i])
         }
-      });
-      console.log(this.download_list);
+      })
+      console.log(this.download_list)
     },
-    select_all() {
-      this.checked = this.$refs.link.map(() => this.select_all_status);
+    select_all () {
+      this.checked = this.$refs.link.map(() => this.select_all_status)
     },
-    handleClick(tab, event) {
-      console.log(tab, event);
+    handleClick (tab, event) {
+      console.log(tab, event)
     },
-    open(link) {
-      this.$electron.shell.openExternal(link);
+    open (link) {
+      this.$electron.shell.openExternal(link)
     },
-    async test() {
+    async test () {
       if (!this.url) {
         this.$message.error({
           showClose: true,
-          type: "error",
-          message: "请输入url"
-        });
-        return;
+          type: 'error',
+          message: '请输入url'
+        })
+        return
       }
 
-      this.list = [];
-      this.checked = [];
-      this.loading = true;
+      this.list = []
+      this.checked = []
+      this.loading = true
       await scout.get(this.url).then(
         response => {
-          this.request_info = response.body;
+          this.request_info = response.body
         },
         error => {
           this.$message.error({
             showClose: true,
-            type: "error",
+            type: 'error',
             message: error
-          });
+          })
         }
-      );
+      )
 
       if (this.request_info) {
         let match_list = this.request_info.match(
-          new RegExp(eval('/(src|href)="' + this.regex_link + '"/'), "g")
-        );
+          new RegExp(eval('/(src|href)="' + this.regex_link + '"/'), 'g')
+        )
 
         match_list = match_list.map(s =>
           s
-            .replace(new RegExp(/(src|href)=/, "g"), "")
-            .replace(new RegExp(/\"/, "g"), "")
-        );
+            .replace(new RegExp(/(src|href)=/, 'g'), '')
+            .replace(new RegExp(/\"/, 'g'), '')
+        )
         if (match_list) {
-          this.list.push(...match_list);
+          this.list.push(...match_list)
         }
       }
 
-      this.loading = false;
+      this.loading = false
     }
   }
-};
+}
 </script>
 
 <style>
